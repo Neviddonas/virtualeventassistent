@@ -1,0 +1,25 @@
+name: Run Scraper Weekly
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'  # Runs every Monday at 10:00 AM UTC
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run the scraper
+        run: python main.py
