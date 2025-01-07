@@ -2,7 +2,7 @@ name: Run Scraper and Deploy Results
 
 on:
   schedule:
-    - cron: '0 10 * * 3'  # Run every Tuesday at 10:00 AM UTC
+    - cron: '0 8 * * 3'  # Run every Tuesday at 10:00 AM UTC
 
 jobs:
   build-and-deploy:
