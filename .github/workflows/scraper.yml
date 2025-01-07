@@ -1,11 +1,11 @@
-name: Run Scraper Weekly and Upload
+name: Run Scraper and Deploy Results
 
 on:
   schedule:
-    - cron: '0 10 * * 2'  # Every Tuesday at 10:00 AM UTC
+    - cron: '0 10 * * 2'  # Run every Tuesday at 10:00 AM UTC
 
 jobs:
-  run-scraper:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,13 +23,10 @@ jobs:
       - name: Run the scraper
         run: python main.py
 
-      - name: Upload via FTP
+      - name: Commit and Push Results
         run: |
-          apt-get update && apt-get install -y ftp
-          ftp -inv ${{ secrets.FTP_HOST }} <<EOF
-          user ${{ secrets.FTP_USERNAME }} ${{ secrets.FTP_PASSWORD }}
-          binary
-          cd public_html  # Change to your desired directory
-          put results.html  # Upload the file
-          bye
-          EOF
+          git config --local user.name "GitHub Actions"
+          git config --local user.email "actions@github.com"
+          git add results.html
+          git commit -m "Update scraper results"
+          git push origin main
