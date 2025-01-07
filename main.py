@@ -57,8 +57,13 @@ def scrape_job_listings():
         links = get_link_remoteok(search, links, driver)
         
     links = list(set(links))
-#    to_database.to_db(links)
-    print(links)
+    with open("results.html", "w") as file:
+        file.write("<html><body><h1>Scraper Results</h1>")
+
+        for link in links:
+            file.write(f'<a href="{link}">{link}</a><br>')
+
+        file.write("</body></html>")
     driver.quit()
     
 scrape_job_listings()
