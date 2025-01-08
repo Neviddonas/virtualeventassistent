@@ -3,7 +3,8 @@ name: Run Scraper and Deploy Results
 on:
   schedule:
     - cron: '0 10 * * 3'  # Every Tuesday at 10:00 AM UTC
-
+   workflow_dispatch:  # Enables the "Run workflow" button
+   
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
