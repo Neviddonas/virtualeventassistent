@@ -53,8 +53,8 @@ def scrape_job_listings():
         links = get_link_workingnommads(search, links, driver)
 
     remoteok = ["https://remoteok.com/remote-marketing-jobs"]
-#    for search in remoteok:
-#        links = get_link_remoteok(search, links, driver)
+    for search in remoteok:
+        links = get_link_remoteok(search, links, driver)
         
     links = list(set(links))
     with open("results.html", "w") as file:
