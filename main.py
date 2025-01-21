@@ -1,10 +1,14 @@
 from selenium.webdriver.firefox.options import Options
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
+import time
+import sending_email
 
 
 def get_link_workingnommads(address, links, driver):
-    driver.get(address)
+    driver.get(address)    
+    time.sleep(2)
     
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     soup_h4 = soup.find_all("h4", class_="hidden-xs")
@@ -22,15 +26,23 @@ def get_link_workingnommads(address, links, driver):
         links.append(final_url)
     return links
 
-def get_link_remoteok(address, links, driver):
+def get_link_nodesk(address, links, driver):
     driver.get(address)
-
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    for tr in soup.find_all("tr", attrs={'data-slug': True}):
-        if 'events' in tr['data-slug'].lower():  # Check if "events" is in the text of the <tr>
-            data_url = tr.find("a", class_ = "no-border tooltip")
-            if data_url:
-                links.append("https://remoteok.com" + data_url["href"])
+    time.sleep(2)
+    
+    jobs = driver.find_elements(By.CSS_SELECTOR, '#hits .ais-Hits-item')
+    hrefs = []
+    for job in jobs:
+        link = job.find_element(By.CSS_SELECTOR, 'a').get_attribute('href')
+        hrefs.append(link)
+    for ref in hrefs:
+        driver.get(ref)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        app_link = soup.find("a", href=True, string=lambda s: s and "Apply" in s)
+        if app_link:
+            link = app_link['href']
+            clean_url = link.split('?')[0]
+        links.append(clean_url)
     return links
 
 def scrape_job_listings():
@@ -38,23 +50,19 @@ def scrape_job_listings():
     options.add_argument("--headless")  # Enable headless mode explicitly
     driver = webdriver.Firefox(options = options)        
     links = []
-    workingnomads = ["https://www.workingnomads.com/jobs?category=management&tag=event-manager",
-                     "https://www.workingnomads.com/jobs?category=management&tag=event-planning",
-                     "https://www.workingnomads.com/jobs?category=management&tag=virtual-event-coordinator",
-                     "https://www.workingnomads.com/jobs?category=management&tag=online-event-manager",
-                     "https://www.workingnomads.com/jobs?category=management&tag=digital-event-coordinator",
-                     "https://www.workingnomads.com/jobs?category=management&tag=event-marketing-specialist",
-                     "https://www.workingnomads.com/jobs?category=management&tag=virtual-event-production",
-                     "https://www.workingnomads.com/jobs?category=management&tag=event-support-specialist",
-                     "https://www.workingnomads.com/jobs?category=management&tag=event-operations",
-                     "https://www.workingnomads.com/jobs?category=management&tag=virtual-engagement-coordinator"]
+    search_terms = ["event manager", "event planning", "virtual event coordinator",
+                    "online event manager", "digital event coordinator",
+                    "event marketing specialist", "virtual event production",
+                    "event support specialist", "event operations", "virtual engagement coordinator"]
+    
+    for search in search_terms:
+        link = f"https://www.workingnomads.com/jobs?category=management&tag={search.replace(' ', '-')}"
+        links = get_link_workingnommads(link, links, driver)
 
-    for search in workingnomads:
-        links = get_link_workingnommads(search, links, driver)
 
-    remoteok = ["https://remoteok.com/remote-marketing-jobs"]
-    for search in remoteok:
-        links = get_link_remoteok(search, links, driver)
+    for search in search_terms:
+        link = f"https://nodesk.co/remote-jobs/?query={search.replace(' ', '%20')}"
+        links = get_link_nodesk(link, links, driver)
         
     links = list(set(links))
     with open("results.html", "w") as file:
@@ -67,3 +75,4 @@ def scrape_job_listings():
     driver.quit()
     
 scrape_job_listings()
+sending_email.send_email()
